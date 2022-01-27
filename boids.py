@@ -15,11 +15,13 @@ proximity_dist = 100
 match_vel_dist = 10000
 match_vel_strength = 0.125/num_boids
 
-boids_x=[random.uniform(-450,50.0) for x in range(num_boids)]
-boids_y=[random.uniform(300.0,600.0) for x in range(num_boids)]
-boid_x_velocities=[random.uniform(0,10.0) for x in range(num_boids)]
-boid_y_velocities=[random.uniform(-20.0,20.0) for x in range(num_boids)]
-boids=(boids_x,boids_y,boid_x_velocities,boid_y_velocities)
+def init_boids():
+    boids_x=[random.uniform(-450,50.0) for x in range(num_boids)]
+    boids_y=[random.uniform(300.0,600.0) for x in range(num_boids)]
+    boid_x_velocities=[random.uniform(0,10.0) for x in range(num_boids)]
+    boid_y_velocities=[random.uniform(-20.0,20.0) for x in range(num_boids)]
+    boids=(boids_x,boids_y,boid_x_velocities,boid_y_velocities)
+    return boids
 
 def update_boids(boids):
     xs,ys,xvs,yvs=boids
@@ -49,6 +51,8 @@ def calc_vel_change(base, increment, decrement, modifier=1):
 
 def check_distance(src_x, dst_x, src_y, dst_y, dist):
     return (((dst_x-src_x)**2 + (dst_y-src_y)**2) < dist)
+
+boids = init_boids()
 
 figure=plt.figure()
 axes=plt.axes(xlim=(-500,1500), ylim=(-500,1500))
