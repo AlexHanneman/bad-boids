@@ -18,25 +18,25 @@ class Boid:
         self.yv = yv
         self.flock = flock
 
-    def calc_boid_vel(self, x_a, y_a, xv_a, yv_a, x_b, y_b, xv_b, yv_b):
+    def calc_boid_vel(self, otherBoid):
         xVelChange = 0.0
         yVelChange = 0.0
 
-        xSep = x_b - x_a
-        ySep = y_b - y_a
+        xSep = otherBoid.x - self.x
+        ySep = otherBoid.y - self.y
 
         xVelChange += xSep*self.flock.flockStrength
         yVelChange += ySep*self.flock.flockStrength
 
         # Fly away from nearby boids
-        if self.check_distance(x_a, x_b, y_a, y_b, self.flock.proxDist):
+        if self.check_distance(self.x, otherBoid.x, self.y, otherBoid.y, self.flock.proxDist):
             xVelChange -= xSep
             yVelChange -= ySep
 
         # Try to match speed with nearby boids
-        if self.check_distance(x_a, x_b, y_a, y_b, self.flock.flockDist):
-            xVelChange += (xv_b - xv_a) * self.flock.matchVelStrength
-            yVelChange += (yv_b - yv_a) * self.flock.matchVelStrength
+        if self.check_distance(self.x, otherBoid.x, self.y, otherBoid.y, self.flock.flockDist):
+            xVelChange += (otherBoid.xv - self.xv) * self.flock.matchVelStrength
+            yVelChange += (otherBoid.yv - self.yv) * self.flock.matchVelStrength
 
         return xVelChange, yVelChange
 
@@ -71,8 +71,7 @@ class Boids:
             xVelChange = 0.0
             yVelChange = 0.0
             for otherBoid in self.boids:
-                velChange = boid.calc_boid_vel(
-                    boid.x, boid.y, boid.xv, boid.yv, otherBoid.x, otherBoid.y, otherBoid.xv, otherBoid.yv)
+                velChange = boid.calc_boid_vel(otherBoid)
                 xVelChange += velChange[0]
                 yVelChange += velChange[1]
 
