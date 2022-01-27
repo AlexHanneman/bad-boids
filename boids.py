@@ -25,26 +25,44 @@ def init_boids():
     return boids
 
 
+def calc_boid_vel(x_a, y_a, xv_a, yv_a, x_b, y_b, xv_b, yv_b):
+    xVelChange = 0.0
+    yVelChange = 0.0
+
+    xSep = x_b - x_a
+    ySep = y_b - y_a
+
+    xVelChange += xSep*middle_strength
+    yVelChange += ySep*middle_strength
+
+    # Fly away from nearby boids
+    if check_distance(x_a, x_b, y_a, y_b, proximity_dist):
+        xVelChange -= xSep
+        yVelChange -= ySep
+
+    # Try to match speed with nearby boids
+    if check_distance(x_a, x_b, y_a, y_b, match_vel_dist):
+        xVelChange += (xv_b - xv_a) * match_vel_strength
+        yVelChange += (yv_b - yv_a) * match_vel_strength
+
+    return xVelChange, yVelChange
+
+
 def update_boids(boids):
     xs, ys, xvs, yvs = boids
     # Fly towards the middle
     for i in range(len(xs)):
+        xVelChange = 0.0
+        yVelChange = 0.0
         for j in range(len(xs)):
-            xSep = xs[j] - xs[i]
-            ySep = ys[j] - ys[i]
+            velChange = calc_boid_vel(
+                xs[i], ys[i], xvs[i], yvs[i], xs[j], ys[j], xvs[j], yvs[j])
+            xVelChange += velChange[0]
+            yVelChange += velChange[1]
 
-            xvs[i] = xvs[i]+xSep*middle_strength
-            yvs[i] = yvs[i]+ySep*middle_strength
-
-            # Fly away from nearby boids
-            if check_distance(xs[i], xs[j], ys[i], ys[j], proximity_dist):
-                xvs[i] = xvs[i] - xSep
-                yvs[i] = yvs[i] - ySep
-
-            # Try to match speed with nearby boids
-            if check_distance(xs[i], xs[j], ys[i], ys[j], match_vel_dist):
-                xvs[i] = xvs[i] + (xvs[j] - xvs[i]) * match_vel_strength
-                yvs[i] = yvs[i] + (yvs[j] - yvs[i]) * match_vel_strength
+        # Update velocity
+        xvs[i] += xVelChange
+        yvs[i] += yVelChange
 
         # Move according to velocities
         xs[i] = xs[i]+xvs[i]
