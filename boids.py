@@ -11,11 +11,37 @@ import random
 
 
 class Boid:
-    def __init__(self, x, y, xv, yv) -> None:
+    def __init__(self, x, y, xv, yv, flock) -> None:
         self.x = x
         self.y = y
         self.xv = xv
         self.yv = yv
+        self.flock = flock
+
+    def calc_boid_vel(self, x_a, y_a, xv_a, yv_a, x_b, y_b, xv_b, yv_b):
+        xVelChange = 0.0
+        yVelChange = 0.0
+
+        xSep = x_b - x_a
+        ySep = y_b - y_a
+
+        xVelChange += xSep*self.flock.flockStrength
+        yVelChange += ySep*self.flock.flockStrength
+
+        # Fly away from nearby boids
+        if self.check_distance(x_a, x_b, y_a, y_b, self.flock.proxDist):
+            xVelChange -= xSep
+            yVelChange -= ySep
+
+        # Try to match speed with nearby boids
+        if self.check_distance(x_a, x_b, y_a, y_b, self.flock.flockDist):
+            xVelChange += (xv_b - xv_a) * self.flock.matchVelStrength
+            yVelChange += (yv_b - yv_a) * self.flock.matchVelStrength
+
+        return xVelChange, yVelChange
+
+    def check_distance(self, src_x, dst_x, src_y, dst_y, dist):
+        return (((dst_x-src_x)**2 + (dst_y-src_y)**2) < dist)
 
 
 class Boids:
@@ -28,37 +54,16 @@ class Boids:
 
     def init_boids(self):
 
-        self.boids = [Boid(random.uniform(-450, 50.0), 
+        self.boids = [Boid(random.uniform(-450, 50.0),
                            random.uniform(300.0, 600.0),
-                           random.uniform(0, 10.0), 
-                           random.uniform(-20.0, 20.0)) 
+                           random.uniform(0, 10.0),
+                           random.uniform(-20.0, 20.0),
+                           self)
                       for i in range(self.numBoids)]
         return boids
 
     def init_boids_from_file(self, fileData):
-        self.boids=[Boid(x,y,xv,yv) for x,y,xv,yv in zip(*fileData)]
-
-    def calc_boid_vel(self, x_a, y_a, xv_a, yv_a, x_b, y_b, xv_b, yv_b):
-        xVelChange = 0.0
-        yVelChange = 0.0
-
-        xSep = x_b - x_a
-        ySep = y_b - y_a
-
-        xVelChange += xSep*self.flockStrength
-        yVelChange += ySep*self.flockStrength
-
-        # Fly away from nearby boids
-        if self.check_distance(x_a, x_b, y_a, y_b, self.proxDist):
-            xVelChange -= xSep
-            yVelChange -= ySep
-
-        # Try to match speed with nearby boids
-        if self.check_distance(x_a, x_b, y_a, y_b, self.flockDist):
-            xVelChange += (xv_b - xv_a) * self.matchVelStrength
-            yVelChange += (yv_b - yv_a) * self.matchVelStrength
-
-        return xVelChange, yVelChange
+        self.boids = [Boid(x, y, xv, yv, self) for x, y, xv, yv in zip(*fileData)]
 
     def update_boids(self):
         # Fly towards the middle
@@ -66,7 +71,7 @@ class Boids:
             xVelChange = 0.0
             yVelChange = 0.0
             for otherBoid in self.boids:
-                velChange = self.calc_boid_vel(
+                velChange = boid.calc_boid_vel(
                     boid.x, boid.y, boid.xv, boid.yv, otherBoid.x, otherBoid.y, otherBoid.xv, otherBoid.yv)
                 xVelChange += velChange[0]
                 yVelChange += velChange[1]
@@ -79,21 +84,20 @@ class Boids:
             boid.x += boid.xv
             boid.y += boid.yv
 
-    def check_distance(self, src_x, dst_x, src_y, dst_y, dist):
-        return (((dst_x-src_x)**2 + (dst_y-src_y)**2) < dist)
-
 
 boids = Boids(50, 0.01/50, 100, 10000, 0.125/50)
 boids.init_boids()
 
 figure = plt.figure()
 axes = plt.axes(xlim=(-500, 1500), ylim=(-500, 1500))
-scatter = axes.scatter([boid.x for boid in boids.boids], [boid.y for boid in boids.boids])
+scatter = axes.scatter([boid.x for boid in boids.boids], [
+                       boid.y for boid in boids.boids])
 
 
 def animate(frame):
     boids.update_boids()
-    scatter.set_offsets(list(zip([boid.x for boid in boids.boids], [boid.y for boid in boids.boids])))
+    scatter.set_offsets(
+        list(zip([boid.x for boid in boids.boids], [boid.y for boid in boids.boids])))
 
 
 anim = animation.FuncAnimation(figure, animate,
