@@ -22,28 +22,26 @@ boid_y_velocities=[random.uniform(-20.0,20.0) for x in range(num_boids)]
 boids=(boids_x,boids_y,boid_x_velocities,boid_y_velocities)
 
 def update_boids(boids):
-	xs,ys,xvs,yvs=boids
-	# Fly towards the middle
-	for i in range(len(xs)):
-		for j in range(len(xs)):
-			xvs[i] = calc_vel_change(xvs[i], xs[j], xs[i], middle_strength)
-			yvs[i] = calc_vel_change(yvs[i], ys[j], ys[i], middle_strength)
+    xs,ys,xvs,yvs=boids
+    # Fly towards the middle
+    for i in range(len(xs)):
+        for j in range(len(xs)):
+            xvs[i] = calc_vel_change(xvs[i], xs[j], xs[i], middle_strength)
+            yvs[i] = calc_vel_change(yvs[i], ys[j], ys[i], middle_strength)
    
-			# Fly away from nearby boids
-			if check_distance(xs[i], xs[j], ys[i], ys[j], proximity_dist):
-				xvs[i] = calc_vel_change(xvs[i], xs[i], xs[j])
-				yvs[i] = calc_vel_change(yvs[i], ys[i], ys[j])
+            # Fly away from nearby boids
+            if check_distance(xs[i], xs[j], ys[i], ys[j], proximity_dist):
+                xvs[i] = calc_vel_change(xvs[i], xs[i], xs[j])
+                yvs[i] = calc_vel_change(yvs[i], ys[i], ys[j])
     
-	# Try to match speed with nearby boids
-	for i in range(len(xs)):
-		for j in range(len(xs)):
-			if check_distance(xs[i], xs[j], ys[i], ys[j], match_vel_dist):
-				xvs[i] = calc_vel_change(xvs[i], xvs[j], xvs[i], match_vel_strength)
-				yvs[i] = calc_vel_change(yvs[i], yvs[j], yvs[i], match_vel_strength)
-	# Move according to velocities
-	for i in range(len(xs)):
-		xs[i]=xs[i]+xvs[i]
-		ys[i]=ys[i]+yvs[i]
+            # Try to match speed with nearby boids
+            if check_distance(xs[i], xs[j], ys[i], ys[j], match_vel_dist):
+                xvs[i] = calc_vel_change(xvs[i], xvs[j], xvs[i], match_vel_strength)
+                yvs[i] = calc_vel_change(yvs[i], yvs[j], yvs[i], match_vel_strength)
+        
+        # Move according to velocities
+        xs[i]=xs[i]+xvs[i]
+        ys[i]=ys[i]+yvs[i]
 
 
 def calc_vel_change(base, increment, decrement, modifier=1):
