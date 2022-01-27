@@ -11,7 +11,8 @@ def test_bad_boids_regression():
     boidsTest = boids.Boids(50, 0.01/50, 100, 10000, 0.125/50)
     boidsTest.init_boids_from_file(boid_data)
     boidsTest.update_boids()
-    checkData = (boidsTest.xs, boidsTest.ys, boidsTest.xvs, boidsTest.yvs)
-    for after, before in zip(regression_data["after"], checkData):
-        for after_value, before_value in zip(after, before):
-            assert_almost_equal(after_value, before_value, delta=0.01)
+    for idx, boid in enumerate(boidsTest.boids):
+        assert_almost_equal(boid.x, regression_data["after"][0][idx], delta=0.01)
+        assert_almost_equal(boid.y, regression_data["after"][1][idx], delta=0.01)
+        assert_almost_equal(boid.xv, regression_data["after"][2][idx], delta=0.01)
+        assert_almost_equal(boid.yv, regression_data["after"][3][idx], delta=0.01)

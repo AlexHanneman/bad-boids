@@ -10,6 +10,14 @@ import random
 # Deliberately terrible code for teaching purposes
 
 
+class Boid:
+    def __init__(self, x, y, xv, yv) -> None:
+        self.x = x
+        self.y = y
+        self.xv = xv
+        self.yv = yv
+
+
 class Boids:
     def __init__(self, numBoids, flockStrength, proxDist, flockDist, matchVelStrength) -> None:
         self.numBoids = numBoids
@@ -19,14 +27,16 @@ class Boids:
         self.matchVelStrength = matchVelStrength
 
     def init_boids(self):
-        self.xs = [random.uniform(-450, 50.0) for x in range(self.numBoids)]
-        self.ys = [random.uniform(300.0, 600.0) for x in range(self.numBoids)]
-        self.xvs = [random.uniform(0, 10.0) for x in range(self.numBoids)]
-        self.yvs = [random.uniform(-20.0, 20.0) for x in range(self.numBoids)]
+
+        self.boids = [Boid(random.uniform(-450, 50.0), 
+                           random.uniform(300.0, 600.0),
+                           random.uniform(0, 10.0), 
+                           random.uniform(-20.0, 20.0)) 
+                      for i in range(self.numBoids)]
         return boids
 
     def init_boids_from_file(self, fileData):
-        self.xs, self.ys, self.xvs, self.yvs = fileData
+        self.boids=[Boid(x,y,xv,yv) for x,y,xv,yv in zip(*fileData)]
 
     def calc_boid_vel(self, x_a, y_a, xv_a, yv_a, x_b, y_b, xv_b, yv_b):
         xVelChange = 0.0
@@ -52,22 +62,22 @@ class Boids:
 
     def update_boids(self):
         # Fly towards the middle
-        for i in range(self.numBoids):
+        for boid in self.boids:
             xVelChange = 0.0
             yVelChange = 0.0
-            for j in range(self.numBoids):
+            for otherBoid in self.boids:
                 velChange = self.calc_boid_vel(
-                    self.xs[i], self.ys[i], self.xvs[i], self.yvs[i], self.xs[j], self.ys[j], self.xvs[j], self.yvs[j])
+                    boid.x, boid.y, boid.xv, boid.yv, otherBoid.x, otherBoid.y, otherBoid.xv, otherBoid.yv)
                 xVelChange += velChange[0]
                 yVelChange += velChange[1]
 
             # Update velocity
-            self.xvs[i] += xVelChange
-            self.yvs[i] += yVelChange
+            boid.xv += xVelChange
+            boid.yv += yVelChange
 
             # Move according to velocities
-            self.xs[i] += self.xvs[i]
-            self.ys[i] += self.yvs[i]
+            boid.x += boid.xv
+            boid.y += boid.yv
 
     def check_distance(self, src_x, dst_x, src_y, dst_y, dist):
         return (((dst_x-src_x)**2 + (dst_y-src_y)**2) < dist)
@@ -78,12 +88,12 @@ boids.init_boids()
 
 figure = plt.figure()
 axes = plt.axes(xlim=(-500, 1500), ylim=(-500, 1500))
-scatter = axes.scatter(boids.xs, boids.ys)
+scatter = axes.scatter([boid.x for boid in boids.boids], [boid.y for boid in boids.boids])
 
 
 def animate(frame):
     boids.update_boids()
-    scatter.set_offsets(list(zip(boids.xs, boids.ys)))
+    scatter.set_offsets(list(zip([boid.x for boid in boids.boids], [boid.y for boid in boids.boids])))
 
 
 anim = animation.FuncAnimation(figure, animate,
